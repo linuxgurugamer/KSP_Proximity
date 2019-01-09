@@ -1,0 +1,117 @@
+Proximity Audio Alarm 
+=====================
+
+Proximity gives an audio alarm and a visual display indicating distance from the planet surface (and depending on configuration, velocity towards it) during landing. 
+
+The Proximity Part
+==================
+
+The part, called 'Proximity', is found under the utility tab. In career or science mode, it is found in the 'landing' node of the tech tree.
+
+The part is activated when the ship is below a certain height (default is 4000m) which the pilot can configure. When active, a visual alert and an audio alarm are produced to inform the pilot of the height above the surface and velocity towards it.
+
+From v1.1 onwards, ModuleManager will add Proximity to any command module or probe core, so the separate Proximity part does not have to be used.
+
+It is integrated with the stock toolbar by default, but can be configured to use blizzy's. (Change 'stock' to 'blizzy' in \GameData\Proximity\Plugins\PluginData\Proximity\config.xml).
+
+Audio Alarm
+===========
+
+The audio alarm makes beeps to indicate height above the surface. The beeps become more frequent as the ship gets closer to the surface. If the 'variable frequency' mode is selected, the beeps rise in pitch as the ship moves faster.
+
+The length of the beep and its waveform can be set to match user preference and fit in with other game sounds.
+
+The audio alarm can be turned off altogether.
+
+Visual Display
+==============
+
+The visual display shows a horizontal line with two moving blobs to indicate the ship's distance from the terrain below. It can operate in two modes.
+
+In 'Distance' mode, the distance between the blobs corresponds to the ship's height above the surface, so during a descent the blobs start at opposite ends of the line and move towards the centre, meeting when the ship is at ground level.
+
+In 'Speed' mode, the blobs start in the centre and move apart if the ship is moving upwards, and start at the ends and meet in the middle if it is moving downwards. The speed of the blobs increases as the ship gets closer to the gound.
+
+The display can also be set to use distance mode above a certain threshold height, and speed mode below it. If this mixed mode is selected, a field to set the threshold height appears.
+
+The visual display can be turned off altogether.
+
+Installation
+============
+
+The proximity folder needs to be unzipped and put in your KSP\GameData folder. If you want the proximity function to be added to all command parts and probe cores, you will also need Module Manager, which is not included in the zip file. This should go in the GameData folder. If you have Module Manager installed for other mods, but want to use Proximity as a part only, then you should delete the 'ProximityConfig.cfg' file from the GameData\Proximity folder.
+
+Code
+====
+
+The source code is in the Source folder in GameData\Proximity.
+
+Licence
+=======
+
+Proximity, its associated files and the source code are all released under the GPL 3 licence, text here: http://www.gnu.org/licenses/gpl.txt.
+
+Version 2.9 updates
+===================
+
+- Recompiled with KSP 1.3 binaries. NB no longer recognizes RealChutes. Sorry
+
+Version 2.8 updates
+===================
+
+- 'Off when parachuting' option now recognizes RealChute chutes
+- Recompiled with KSP 1.2.2 binaries.
+
+Version 2.7 updates
+===================
+
+- Recompiled with KSP 1.2 binaries.
+
+Version 2.6 updates
+===================
+
+- Window now disappears with the rest of the UI on F2
+- If the part config file is edited to move the part to a different tech tree node, it will now behave sensibly rather than requiring 'landing' to be unlocked
+- efficiency tweaks
+- available in map mode
+- Recompiled with KSP 1.1.3 binaries.
+
+Version 2.5.0.9 updates
+=======================
+
+- Beep length is not user-configurable any more.
+- If Module Manager is used to add Proximity functionality to command pods and probe cores, Proximity is still unavailable until it has been researched
+- New look for stock buttons
+- Recompiled with KSP 1.1.2 binaries.
+
+Version 2.4 updates
+===================
+
+- Recompiled with KSP 1.0.5 binaries.
+
+Version 2.0 updates
+===================
+
+- An excellent new part model by Justin Kerbice, replacing the copy of the thermometer used previously.
+- Recompiled with KSP 0.24 binaries.
+- A toolbar button is provided to activate the settings controls anytime, using blizzy78's toolbar plugin, available at http://forum.kerbalspaceprogram.com/threads/60863-0-23-5-Toolbar-1-7-3-Common-API-for-draggable-resizable-buttons-toolbar. (The toolbar plugin is not included in the Proximity download. It isn't required, but the settings are only available near the surface without it.)
+- A configuration file has been added so that ModuleManager picks up Proximity and adds its functionality to all command modules and probe cores, so you don't need to add the part. (The part is still available, and ModuleManager is not required to use it.) Thanks to KerbMav for showing me how to do this.
+- There is a new option to automatically switch off Proximity if the craft is a rover-type vessel. This prevents it appearing now and then when driving a rover over bumpy ground.
+- There is a new option to automatically switch off Proximity if parachute(s) are open or semi-open.
+- The colour of the visual display changes smoothly in speed mode from green through orange to red, depending on a rough calculation of danger (worked out from vertical speed and altitude). It is now white when ascending.
+- Proximity switches off automatically after 5 seconds of ascent, since that's probably a launch. It switches back on if the vessel begins descending.
+- There is a volume control for the beeps.
+- There is an on/off button to quickly disable/enable Proximity.
+- The GUI has been re-arranged and tidied up a bit.
+
+Version 1.1 updates
+===================
+
+- Altitude above terrain is now used consistently.
+- Bug which caused the alarm to occasionally start up when very high above the surface has been fixed.
+- Frequency of beeping is now a smooth function of altitude, and beep pitch is now a smooth function of speed.
+- The colours of the visual display are now cyan (distance mode) and green, orange, or red (speed mode) depending on a rough calculation of danger.
+- Beeping pauses in when the game is paused.
+- All preferences are now saved and reloaded properly.
+- Part has been moved to Utility tab from Science tab.
+- Now released under GPL licence.
