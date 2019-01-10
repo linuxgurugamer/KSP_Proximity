@@ -1,0 +1,25 @@
+{
+  "NAME": "KSP_Proximity",
+  "URL": "http://ksp.spacetux.net/avc/KSP_Proximity",
+  "DOWNLOAD": "https://github.com/linuxgurugamer/KSP_Proximity/releases",
+  "GITHUB": {
+    "USERNAME": "linuxgurugamer",
+    "REPOSITORY": "KSP_Proximity"
+  },
+  "VERSION": {
+    "MAJOR": 0,
+    "MINOR": 3,
+    "PATCH": 0,
+    "BUILD": 0
+  },
+  "KSP_VERSION": {
+    "MAJOR": 1,
+    "MINOR": 5,
+    "PATCH": 1
+  },
+  "KSP_VERSION_MIN": {
+    "MAJOR": 1,
+    "MINOR": 5,
+    "PATCH": 1
+  }
+}

@@ -1,91 +1,109 @@
 ﻿using System.IO;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using KSP.UI.Screens;
+using ToolbarControl_NS;
 
 namespace Proximity
 {
     [KSPAddon(KSPAddon.Startup.Flight, true)]
     public class StockToolbar : MonoBehaviour
     {
-        private static Texture2D shownOnButton;
-        private static Texture2D shownOffButton;
-        private static Texture2D hiddenOnButton;
-        private static Texture2D hiddenOffButton;
-        private static Texture2D unavailableButton;
+        internal static StockToolbar Instance;
 
-        private ApplicationLauncherButton stockToolbarBtn;
-
-        private bool buttonNeeded = false;
+        ToolbarControl toolbarControl = null;
+        
         public bool ButtonNeeded
         {
-            get { return buttonNeeded; }
-            set { buttonNeeded = value; }
+            get;
+            set;
         }
+
+        const string ShownOnButton = "ProximityGreyOn";
+        const string ShownOffButton = "ProximityGreyOff";
+        const string HiddenOnButton = "ProximityColourOn";
+        const string HiddenOffButton = "ProximityColourOff";
+        const string UnavailableButton = "ProximityUnavailable";
 
         void Start()
         {
-            if (Proximity.UseStockToolBar)
-            {
-                Load(ref shownOnButton, "ProximityGreyOn.png");
-                Load(ref shownOffButton, "ProximityGreyOff.png");
-                Load(ref hiddenOnButton, "ProximityColourOn.png");
-                Load(ref hiddenOffButton, "ProximityColourOff.png");
-                Load(ref unavailableButton, "ProximityUnavailable.png");
-
-                GameEvents.onGUIApplicationLauncherReady.Add(CreateButton);
-            }
-            DontDestroyOnLoad(this); 
+            Instance = this;
+            DontDestroyOnLoad(this);
         }
 
-        private void Load(ref Texture2D tex, string file)
-        { 
-            if (tex == null)
-            {
-                tex = new Texture2D(36, 36, TextureFormat.RGBA32, false);
-                tex.LoadImage(File.ReadAllBytes(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), file)));
-            }
+        internal const string dataPath = "GameData/KSP_Proximity/PluginData";
+        internal const string buttonDirPath = "KSP_Proximity/PluginData/ToolbarIcons/";
+
+        string ButtonPath(string buttonName)
+        {
+            return Path.Combine(buttonDirPath, buttonName);
         }
 
         public void CreateButton()
         {
-            buttonNeeded = Proximity.IsRelevant();
-            if (buttonNeeded)
+            ButtonNeeded = Proximity.IsRelevant();
+            if (ButtonNeeded)
             {
                 MakeButton();
             }
-            else if (stockToolbarBtn != null)
+            else if (toolbarControl != null)
             {
-                ApplicationLauncher.Instance.RemoveModApplication(stockToolbarBtn);
+                toolbarControl.buttonActive = false;
             }
         }
 
-        private void MakeButton()
-        { 
-            if (stockToolbarBtn != null)
-            {
-                ApplicationLauncher.Instance.RemoveModApplication(stockToolbarBtn);
-            }
+        internal const string MODID = "Proximity_NS";
+        internal const string MODNAME = "Proximity";
 
-            stockToolbarBtn = ApplicationLauncher.Instance.AddModApplication(
-                ProximityHide, ProximityShow, null, null, null, null,
-                ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW, GetTexture());
-            
+        private void MakeButton()
+        {
+            if (toolbarControl == null)
+            {
+                toolbarControl = gameObject.AddComponent<ToolbarControl>();
+                toolbarControl.AddToAllToolbars(ProximityHide, ProximityShow,
+                    ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW,
+                    MODID,
+                    "proximityButton",
+                    GetTextureName(38),
+                    GetTextureName(24),
+                    MODNAME
+                );
+                toolbarControl.AddLeftRightClickCallbacks(null, ToggleOnRightClick);
+            }
+            toolbarControl.buttonActive = true;
             if (!Proximity.ToolbarShowSettings)
             {
-                stockToolbarBtn.SetTrue(false);
+                toolbarControl.SetTrue(false);
             }
             else
             {
-                stockToolbarBtn.SetFalse(false);
+                toolbarControl.SetFalse(false);
+            }
+
+        }
+        void ToggleOnRightClick()
+        {
+            if (FlightGlobals.ActiveVessel != null)
+            {
+                List<Proximity> prox = FlightGlobals.ActiveVessel.FindPartModulesImplementing<Proximity>();
+
+                if (prox != null && prox.Count > 0)
+                {
+                    Proximity p = prox.FirstOrDefault();
+                    if (p != null)
+                        p.ToggleSystemOn();
+                    return;
+                }
             }
         }
 
         public void RefreshButtonTexture()
         {
-            if (stockToolbarBtn != null)
+            if (toolbarControl != null)
             {
-                stockToolbarBtn.SetTexture(GetTexture());
+                toolbarControl.SetTexture(GetTextureName(38), GetTextureName(24));
             }
         }
 
@@ -107,34 +125,55 @@ namespace Proximity
             }
         }
 
-        private Texture2D GetTexture()
-        { 
-            Texture2D tex;
-
+        private string GetTextureName(int btnSize)
+        {
             if (TechChecker.TechAvailable)
             {
-                if (Proximity.SystemOn)
+                switch (btnSize)
                 {
-                    tex = (Proximity.ToolbarShowSettings ? shownOnButton : hiddenOnButton);
+                    case 24:
+
+                        string path24 = buttonDirPath + "ProxS";
+
+                        path24 += Proximity.toolbarShowSettings ? "G" : "C";
+
+                        if (!Proximity.SystemOn)
+                        {
+                            path24 += "X";
+                        }
+                        return path24.Replace(@"\", "/");                    
+
+                    case 38:
+                        if (Proximity.SystemOn)
+                        {
+                            return (buttonDirPath + (Proximity.ToolbarShowSettings ? ShownOnButton : HiddenOnButton)).Replace(@"\", "/");
+                        }
+                        else
+                        {
+                            return (buttonDirPath + (Proximity.ToolbarShowSettings ? ShownOffButton : HiddenOffButton)).Replace(@"\", "/");
+                        }      
                 }
-                else
-                {
-                    tex = (Proximity.ToolbarShowSettings ? shownOffButton : hiddenOffButton);
-                }
+                return "";
             }
             else
             {
-                tex = unavailableButton;
+                switch (btnSize)
+                {
+                    case 24:
+                        return (buttonDirPath + "ProxSG2").Replace(@"\", "/");
+                    case 38:
+                        return (buttonDirPath + UnavailableButton).Replace(@"\", "/");
+                }
+                return "";
             }
-
-            return tex;
         }
 
         private void OnDestroy()
         {
-            if (stockToolbarBtn != null)
+            if (toolbarControl != null)
             {
-                ApplicationLauncher.Instance.RemoveModApplication(stockToolbarBtn);
+                toolbarControl.OnDestroy();
+                Destroy(toolbarControl);
             }
         }
     }

@@ -1,0 +1,8 @@
+0.3.0
+	Adopted by LinuxGuruGamer
+	Updated for 1.5+
+	Added support for ClickThroughBlocker
+	Replaced toolbar control code with the ToolbarController
+	Re-Enabled the RealChute code, fixed it so no problem occurs when RealChute is not installed
+	Added right-click to toggle on/off
+	Replaced XML file for settings with standard config file, now saved in KSP_Proximity/PluginData

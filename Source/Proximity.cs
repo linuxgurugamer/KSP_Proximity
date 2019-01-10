@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using KSP.IO;
 using Proximity.Extensions;
+using ClickThroughFix;
 
 namespace Proximity
 {
@@ -14,35 +16,37 @@ namespace Proximity
         private static string[] beepType = { "Square", "Saw", "Sine", "None" };
         private static int beepIndex = 0;
 
-        private static string[] pitchType = { "Variable", "440 Hz", "880 Hz", "1760 Hz"};
+        private static string[] pitchType = { "Variable", "440 Hz", "880 Hz", "1760 Hz" };
         private static int pitchIndex = 0;
 
         // visual display
-        private static string[] visualType = { "Distance", "Speed", "Dist >%m, Speed <%m", "No visuals"};
+        private static string[] visualType = { "Distance", "Speed", "Dist >%m, Speed <%m", "No visuals" };
         private static int visualIndex = 0;
 
         // expand window - showsettings is toggled by the button on the prox window itself. It is not used
         // if settingsMode (controlled from the toolbar button) is true, in which case settings are always shown and 
         // the button on the prox window is not shown
         private static bool GUIShowSettings = false;
-        private static bool toolbarShowSettings = false;
+
+
+        internal static bool toolbarShowSettings = false;
         public static bool ToolbarShowSettings
         {
             get { return toolbarShowSettings; }
-            set 
-            { 
+            set
+            {
                 toolbarShowSettings = value;
                 sizechange = true;
             }
         }
 
-        private static bool UseToolbar = false;
+        // private static bool UseToolbar = false;
         private static StockToolbar stockToolbar = null;
 
-        private static int ActivationHeight = 3000; // for proximity as a whole
+        private static int ActivationHeight = 4000; // for proximity as a whole
         private static int DSThreshold = 300; // threshold height for both (a) switching between the two visual modes,
 
-        private static ToolbarButtonWrapper toolbarButton = null;
+        //private static ToolbarButtonWrapper toolbarButton = null;
 
         private int altitude = 0;
 
@@ -56,15 +60,15 @@ namespace Proximity
         private int audioskip = 0;
         private int audioSkipValue = 10;
         private bool newBeepAllowed = true;
-        private static bool hideUI = false;
+
         public static bool HideUI
         {
-            get { return hideUI; }
-            set { hideUI = value; }
+            get;
+            set;
         }
 
         // visual output 
-        private static string warnstring = "------------------------------------------------"; 
+        private static string warnstring = "------------------------------------------------";
         private static string warn = "";
         private int warnPos = 0;
 
@@ -90,23 +94,15 @@ namespace Proximity
 
         private static bool isPowered = true;
 
-        private static bool useStockToolBar = true;
-        public static bool UseStockToolBar
-        {
-            get { return useStockToolBar; }
-            set { useStockToolBar = value; }
-        }
-        
-        private static bool systemOn = true;
         public static bool SystemOn
         {
-            get { return systemOn; }
-            set { systemOn = value; }
+            get;
+            set;
         }
 
         private const float fixedwidth = 255f;
         private const float margin = 20f;
-        
+
         private GUIStyle styleTextArea = null;
         private GUIStyle styleButton = null;
         private GUIStyle styleValue = null;
@@ -141,69 +137,12 @@ namespace Proximity
                     }
 
                     timeSinceLanding = FlightGlobals.ActiveVessel.missionTime;
-
-                    if (!useStockToolBar) // blizzy
-                    {
-                        InitBlizzyButton();
-                    }
-                    else // stock
-                    {
-                        UseToolbar = true;
-                    }
                 }
                 ProximityDraw();
             }
         }
 
-        private void InitBlizzyButton()
-        {
-            try
-            {
-                toolbarButton = new ToolbarButtonWrapper("Proximity", "toolbarButton");
-                RefreshBlizzyButton();
-                toolbarButton.ToolTip = "Proximity settings";
-                toolbarButton.Visible = true;
-                toolbarButton.AddButtonClickHandler((e) =>
-                {
-                    toolbarShowSettings = !toolbarShowSettings;
-                    sizechange = true;
-                    RefreshBlizzyButton();
-                });
-            }
-            catch (Exception ex)
-            {
-                print("Proximity - InitBlizzyButton(): " + ex.Message);
-            }
-
-            UseToolbar = true;
-        }
-
-        private bool RefreshBlizzyButton()
-        {
-            toolbarButton.Visible = IsRelevant();
-
-            if (toolbarButton.Visible)
-            {
-                string path = "Proximity/ToolbarIcons/ProxS";
-
-                path += toolbarShowSettings ? "G" : "C";
-
-                if (!SystemOn)
-                {
-                    path += "X";
-                }
-
-                toolbarButton.TexturePath = path;
-            }
-            else
-            {
-                lostToStaging = true;
-            }
-
-            return toolbarButton.Visible;
-        }
-
-        void OnAudioRead(float[] data) 
+        void OnAudioRead(float[] data)
         {
             if (FlightGlobals.ActiveVessel == null)
             {
@@ -303,100 +242,101 @@ namespace Proximity
             }
         }
 
-        void OnAudioSetPosition(int newPosition) 
+        void OnAudioSetPosition(int newPosition)
         {
             return;
         }
 
         public override void OnSave(ConfigNode node)
         {
-            try
-            {
-                PluginConfiguration config = PluginConfiguration.CreateForType<Proximity>();
+            ConfigNode file = new ConfigNode();
+            ConfigNode node1 = new ConfigNode();
 
-                config.SetValue("Window Position", windowPos);
-                config.SetValue("Beep type", beepIndex);
-                config.SetValue("Visual type", visualIndex);
-                config.SetValue("Activation height", ActivationHeight);
-                config.SetValue("Distance Speed threshold", DSThreshold);
-                config.SetValue("Show settings", UseToolbar ? toolbarShowSettings : GUIShowSettings);
-                config.SetValue("Pitch type", pitchIndex);
-                config.SetValue("Off if parachute", deactivateOnParachute);
-                config.SetValue("Off if rover", deactivateIfRover);
-                config.SetValue("Volume", (int)(volume * 100));
-                config.SetValue("Toolbar", useStockToolBar ? "stock" : "blizzy");
+            file.AddNode("Proximity", node1);
 
-                config.save();
-            }
-            catch (Exception ex)
-            {
-                print("Proximity - OnSave(): " + ex.Message);
-            }
+            node1.AddValue("posXmin", windowPos.xMin);
+            node1.AddValue("posXmax", windowPos.xMax);
+            node1.AddValue("posYmin", windowPos.yMin);
+            node1.AddValue("posYmax", windowPos.yMax);
+
+            node1.AddValue("beepIndex", beepIndex);
+            node1.AddValue("visualIndex", visualIndex);
+            node1.AddValue("ActivationHeight", ActivationHeight);
+            node1.AddValue("DSThreshold", DSThreshold);
+            node1.AddValue("pitchIndex", pitchIndex);
+            node1.AddValue("deactivateOnParachute", deactivateOnParachute);
+            node1.AddValue("deactivateIfRover", deactivateIfRover);
+            node1.AddValue("volume", (int)(volume * 100));
+
+
+            file.Save(StockToolbar.dataPath + "/config.cfg");
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            try
+            if (System.IO.File.Exists(StockToolbar.dataPath + "/config.cfg"))
             {
-                PluginConfiguration config = PluginConfiguration.CreateForType<Proximity>();
-
-                config.load();
-
-                try
+                ConfigNode file = ConfigNode.Load(StockToolbar.dataPath + "/config.cfg");
+                if (file != null)
                 {
-                    windowPos = config.GetValue<Rect>("Window Position");
-                    beepIndex = config.GetValue<int>("Beep type");
-                    visualIndex = config.GetValue<int>("Visual type");
-                    ActivationHeight = config.GetValue<int>("Activation height");
-                    DSThreshold = config.GetValue<int>("Distance Speed threshold");
-                    GUIShowSettings = config.GetValue<bool>("Show settings");
-                    toolbarShowSettings = GUIShowSettings;
-                    pitchIndex = config.GetValue<int>("Pitch type");
-                    deactivateOnParachute = config.GetValue<bool>("Off if parachute");
-                    deactivateIfRover = config.GetValue<bool>("Off if rover");
-                    int vol = config.GetValue<int>("Volume");
-                    volume = ((float)vol) / 100f;
-                    string s = config.GetValue<string>("Toolbar");
-                    s = s.ToLower();
-                    useStockToolBar = !(s.Contains("blizzy"));
-                }
-                catch (Exception ex)
-                {
-                    print("Proximity - OnLoad(): (inner) " + ex.Message);
-                }
+                    ConfigNode node1 = file.GetNode("Proximity");
+                    if (node1 != null)
+                    {
+                        {
+                            windowPos = new Rect();
+                            float f;
+                            float.TryParse(node1.GetValue("posXmin"), out f);
+                            windowPos.xMin = f;
+                            float.TryParse(node1.GetValue("posXmax"), out f);
+                            windowPos.xMax = f;
+                            float.TryParse(node1.GetValue("posYmin"), out f);
+                            windowPos.yMin = f;
+                            float.TryParse(node1.GetValue("posYmax"), out f);
+                            windowPos.yMax = f;
+                        }
+                        int.TryParse(node1.GetValue("beepIndex"), out beepIndex);
 
-                windowPos.width = fixedwidth;
+                        int.TryParse(node1.GetValue("visualIndex"), out visualIndex);
+                        int.TryParse(node1.GetValue("ActivationHeight"), out ActivationHeight);
+                        int.TryParse(node1.GetValue("DSThreshold"), out DSThreshold);
+                        Boolean.TryParse(node1.GetValue("GUIShowSettings"), out GUIShowSettings);
 
-                if (volume < 0.01f)
-                {
-                    // no config file, set defaults
-                    ActivationHeight = 4000;
-                    DSThreshold = 500;
-                    beepIndex = 1;
-                    pitchIndex = 0;
-                    visualIndex = 1;
-                    volume = 0.5f;
-                    deactivateIfRover = true;
-                }
-                else
-                {
-                    if (ActivationHeight < 500) ActivationHeight = 500;
-                    if (ActivationHeight > 10000) ActivationHeight = 10000;
+                        int.TryParse(node1.GetValue("pitchIndex"), out pitchIndex);
+                        Boolean.TryParse(node1.GetValue("deactivateOnParachute"), out deactivateOnParachute);
+                        Boolean.TryParse(node1.GetValue("deactivateIfRover"), out deactivateIfRover);
 
-                    if (DSThreshold < 200) DSThreshold = 200;
-                    if (DSThreshold > 2000) DSThreshold = 2000;
-
-                    if (beepIndex < 0 || beepIndex > 3) beepIndex = 1;
-                    if (pitchIndex < 0 || pitchIndex > 3) pitchIndex = 0;
-                    if (visualIndex < 0 || visualIndex > 3) visualIndex = 1;
-
-                    if (volume > 1.0f) volume = 1.0f;
+                        int vol = 50;
+                        int.TryParse(node1.GetValue("volume"), out vol);
+                        volume = ((float)vol) / 100f;
+                    }
                 }
             }
-            catch (Exception ex)
+            else
             {
-                print("Proximity - OnLoad(): (outer) " + ex.Message);
+                // no config file, set defaults
+                ActivationHeight = 4000;
+                DSThreshold = 500;
+                beepIndex = 1;
+                pitchIndex = 0;
+                visualIndex = 1;
+                volume = 0.5f;
+                deactivateIfRover = true;
             }
+            windowPos.width = fixedwidth;
+
+            if (ActivationHeight < 500) ActivationHeight = 500;
+            if (ActivationHeight > 10000) ActivationHeight = 10000;
+
+            if (DSThreshold < 200) DSThreshold = 200;
+            if (DSThreshold > 2000) DSThreshold = 2000;
+
+            if (beepIndex < 0 || beepIndex > 3) beepIndex = 1;
+            if (pitchIndex < 0 || pitchIndex > 3) pitchIndex = 0;
+            if (visualIndex < 0 || visualIndex > 3) visualIndex = 1;
+
+            if (volume > 1.0f) volume = 1.0f;
+            if (volume <= 0) volume = 0.5f;
+
         }
 
         private void ProximityDraw()
@@ -410,26 +350,17 @@ namespace Proximity
                     isPowered = IsPowered();
 
                     // this takes account of vessels splitting (when undocking), Kerbals going on EVA, etc.
-                    if (newInstance || (useStockToolBar && (FlightGlobals.ActiveVessel.parts.Count != numParts || FlightGlobals.ActiveVessel.currentStage != stage)))
+                    if (newInstance || (FlightGlobals.ActiveVessel.parts.Count != numParts || FlightGlobals.ActiveVessel.currentStage != stage))
                     {
                         numParts = FlightGlobals.ActiveVessel.parts.Count;
                         stage = FlightGlobals.ActiveVessel.currentStage;
 
                         newInstance = false;
                         lostToStaging = false;
-                        if (useStockToolBar)
+
+                        if (!RefreshStockButton())
                         {
-                            if (!RefreshStockButton())
-                            {
-                                return;
-                            }
-                        }
-                        else
-                        {
-                            if (!RefreshBlizzyButton())
-                            {
-                                return;
-                            }
+                            return;
                         }
                     }
 
@@ -442,12 +373,12 @@ namespace Proximity
                         }
 
                         // no window if no visuals && no settings
-                        if (visualIndex == 3 && !((!UseToolbar && GUIShowSettings && ConditionalShow) || (UseToolbar && toolbarShowSettings)))
+                        if (visualIndex == 3 && /* !((!UseToolbar && GUIShowSettings && ConditionalShow) || (UseToolbar &&*/  toolbarShowSettings) //))
                         {
                             return;
                         }
 
-                        if (!hideUI)
+                        if (!HideUI)
                         {
                             styleTextArea = new GUIStyle(GUI.skin.textArea);
                             styleTextArea.normal.textColor = styleTextArea.focused.textColor = styleTextArea.hover.textColor = styleTextArea.active.textColor = Color.green;
@@ -473,7 +404,7 @@ namespace Proximity
                             }
 
                             GUILayoutOption[] opts = { GUILayout.Width(fixedwidth), GUILayout.ExpandHeight(true) };
-                            windowPos = GUILayout.Window(this.ClassID, windowPos, OnWindow, ConditionalShow ? "Proximity" : "Proximity settings", opts);
+                            windowPos = ClickThruBlocker.GUILayoutWindow(this.ClassID, windowPos, OnWindow, ConditionalShow ? "Proximity" : "Proximity settings", opts);
                             //windowPos = GUILayout.Window(123124, windowPos, OnWindow, ConditionalShow ? "Proximity" : "Proximity settings", GUILayout.Width(fixedwidth));
                             windowPos.width = fixedwidth;
 
@@ -624,8 +555,8 @@ namespace Proximity
 
             prevConditionalShow = ConditionalShow;
             ConditionalShow = retval;
-            return ConditionalShow || (UseToolbar && toolbarShowSettings);
-         }
+            return ConditionalShow || (/* UseToolbar && */ toolbarShowSettings);
+        }
 
         private void OnWindow(int windowID)
         {
@@ -636,7 +567,6 @@ namespace Proximity
         private void DoProximityContent()
         {
             CheckLanded();
-
             if (Event.current.type == EventType.repaint && ConditionalShow)
             {
                 CheckChutes();
@@ -729,7 +659,7 @@ namespace Proximity
 
         // colour for visual display bar - cyan if distance mode, else by prox / speed ratio
         private Color GetColour(int alt)
-        { 
+        {
             Color colour = Color.green;
 
             if (!isPowered)
@@ -775,7 +705,7 @@ namespace Proximity
         {
             try
             {
-                if (UseToolbar && toolbarShowSettings)
+                if (/* UseToolbar && */ toolbarShowSettings)
                 {
                     // Activation height
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
@@ -875,21 +805,7 @@ namespace Proximity
                     GUILayout.Label(SystemOn ? "ON " : "OFF ", styleValue);
                     if (GUILayout.Button(SystemOn ? "Switch off" : "Switch on", styleButton, GUILayout.ExpandWidth(true)))
                     {
-                        SystemOn = !SystemOn;
-                        sizechange = true;
-
-                        if (!useStockToolBar)
-                        {
-                            RefreshBlizzyButton();
-                        }
-                        else
-                        {
-                            StockToolbar stb = (StockToolbar)StockToolbar.FindObjectOfType(typeof(StockToolbar));
-                            if (stb != null)
-                            {
-                                stb.RefreshButtonTexture();
-                            }
-                        }
+                        ToggleSystemOn();
                     }
                     GUILayout.EndHorizontal();
                 }
@@ -897,6 +813,20 @@ namespace Proximity
             catch (Exception ex)
             {
                 print("Proximity - ShowSettings(): " + ex.Message);
+            }
+        }
+
+        internal void ToggleSystemOn()
+        {
+            SystemOn = !SystemOn;
+            sizechange = true;
+
+            {
+                StockToolbar stb = (StockToolbar)StockToolbar.FindObjectOfType(typeof(StockToolbar));
+                if (stb != null)
+                {
+                    stb.RefreshButtonTexture();
+                }
             }
         }
 
@@ -928,7 +858,8 @@ namespace Proximity
 
         private AudioClip MakeBeep()
         {
-            return AudioClip.Create("beepx", 4096, 1, 44100, false, false, OnAudioRead, OnAudioSetPosition);
+            //eturn AudioClip.Create("beepx", 4096, 1, 44100, false, false, OnAudioRead, OnAudioSetPosition);
+            return AudioClip.Create("beepx", 4096, 1, 44100, false, OnAudioRead, OnAudioSetPosition);
         }
 
         private string InitialiseWarnString()
@@ -938,7 +869,7 @@ namespace Proximity
 
         // make visual display string in Speed mode
         private string GetWarnStringSpeed()
-        { 
+        {
             string warn = InitialiseWarnString();
 
             warn = warn.Insert(warnstring.Length - warnPos, "O");
@@ -961,7 +892,7 @@ namespace Proximity
 
             return warn;
         }
-        
+
         // make visual display string in Distance mode
         private string GetWarnStringDistance()
         {
@@ -969,7 +900,7 @@ namespace Proximity
 
             string warn = InitialiseWarnString();
             warn = warn.Insert(warnstring.Length - (warnPos + 1), "O");
-            warn = warn.Insert(warnPos + 1, "O");            
+            warn = warn.Insert(warnPos + 1, "O");
             return warn;
         }
 
@@ -1019,8 +950,23 @@ namespace Proximity
             return true;
         }
 
+        void CheckRealChutes()
+        {
+            List<RealChute.RealChuteModule> lrc = FlightGlobals.ActiveVessel.FindPartModulesImplementing<RealChute.RealChuteModule>();
+            if (lrc != null)
+            {
+                RealChute.RealChuteModule rc = lrc.FirstOrDefault();
+
+                if (rc != null && rc.AnyDeployed)
+                {
+                    parachutesOpen = true;
+                    return;
+                }
+            }
+        }
+
         private void CheckChutes()
-        { 
+        {
             if (deactivateOnParachute && !parachutesOpen)
             {
                 List<ModuleParachute> lpara = FlightGlobals.ActiveVessel.FindPartModulesImplementing<ModuleParachute>();
@@ -1035,29 +981,14 @@ namespace Proximity
                     }
                 }
                 en.Dispose();
-/*
+
                 if (!parachutesOpen && TechChecker.RealChutes)
                 {
-                    try
-                    {
-                        List<RealChute.RealChuteModule> lrc = FlightGlobals.ActiveVessel.FindPartModulesImplementing<RealChute.RealChuteModule>();
-                        List<RealChute.RealChuteModule>.Enumerator rce = lrc.GetEnumerator();
-                        while (rce.MoveNext())
-                        {
-                            if (rce.Current.AnyDeployed)
-                            {
-                                parachutesOpen = true;
-                                break;
-                            }
-                        }
-                        rce.Dispose();
-                    }
-                    catch (Exception e)
-                    {
-                        print(Proximity - checking realChutes - " + e.Message);
-                    }
+                    // Put the RealChutes code into a seperate function to avoid issues at runtime
+                    // if RealChute is not installed
+                    CheckRealChutes();
                 }
-*/
+
             }
         }
 
@@ -1089,10 +1020,9 @@ namespace Proximity
         private bool RefreshStockButton()
         {
             bool result = false;
-
             try
             {
-                stockToolbar = (StockToolbar)StockToolbar.FindObjectOfType(typeof(StockToolbar));
+                stockToolbar = StockToolbar.Instance;
                 if (stockToolbar != null)
                 {
                     result = true;
@@ -1111,12 +1041,12 @@ namespace Proximity
             {
                 print("Proximity - RefreshStockButton(): " + ex.Message);
             }
-
             return result;
+
         }
 
         public static bool IsRelevant()
-        { 
+        {
             if (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.PSYSTEM)
             {
                 if (FlightGlobals.ActiveVessel != null)

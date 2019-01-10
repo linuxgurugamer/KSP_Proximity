@@ -8,25 +8,24 @@ namespace Proximity
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     public class TechChecker : MonoBehaviour
     {
-        private static bool techAvailable = false;
         public static bool TechAvailable
         {
-            get { return techAvailable; }
-            set { techAvailable = value; }
+            get;
+            set;
         }
-
-        private static bool realChutes = false;
+        
         public static bool RealChutes
         {
-            get { return realChutes; }
-            set { realChutes = value; }
+            get;
+            set;
         }
 
         private static bool initialized = false;
 
         private void Start()
         {
-            techAvailable = false;
+            TechAvailable = false;
+            RealChutes = false;
 
             try
             {
@@ -66,12 +65,12 @@ namespace Proximity
                     Initialize();
                 }
             }
-            catch (Exception ex) { print("Proximity startup exeption - " + ex.Message); }
+            catch (Exception ex) { print("Proximity startup exception - " + ex.Message); }
         }
 
         private void Initialize()
         {
-            techAvailable = true;
+            TechAvailable = true;
             print("Proximity initializing");
 
             if (!initialized)
@@ -79,12 +78,12 @@ namespace Proximity
                 GameEvents.onHideUI.Add(new EventVoid.OnEvent(OnHideUI));
                 GameEvents.onShowUI.Add(new EventVoid.OnEvent(OnShowUI));
 
-                //CheckRealChutes();
+                CheckRealChutes();
 
                 initialized = true;
             }
         }
-/*
+
         private void CheckRealChutes()
         {
             foreach (Assembly assembly in AppDomain.CurrentDomain.GetAssemblies())
@@ -97,18 +96,13 @@ namespace Proximity
                         if (t.Name.Contains("RealChuteModule"))
                         {
                             RealChutes = true;
-                            break;
+                            return;
                         }
-                    }
-
-                    if (realChutes)
-                    {
-                        break;
                     }
                 }
             }
         }
-*/
+
         private void OnShowUI()
         {
             Proximity.HideUI = false;
