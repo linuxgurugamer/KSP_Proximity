@@ -27,7 +27,7 @@
 1:KSP_Proximity, KSP_Proximity.version
 
 # 2:PROJNAME, PROJFILE, VERSIONFILE, PLUGINSFOLDER
-2:KSP_Proximity,Source/KProximity.csproj,KSP_Proximity.version,GameData/KSP_Proximity/Plugins
+2:KSP_Proximity,Source/Proximity.csproj,KSP_Proximity.version,GameData/KSP_Proximity/Plugins
 
 # 3:SOURCEFILE, DESTDIR
 3:KSP_Proximity.version,GameData/KSP_Proximity
