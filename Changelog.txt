@@ -6,3 +6,4 @@
 	Re-Enabled the RealChute code, fixed it so no problem occurs when RealChute is not installed
 	Added right-click to toggle on/off
 	Replaced XML file for settings with standard config file, now saved in KSP_Proximity/PluginData
+	Replaced the OnSave function with a simple Save(), added checks to all data items for changed data

@@ -247,7 +247,8 @@ namespace Proximity
             return;
         }
 
-        public override void OnSave(ConfigNode node)
+       // public override void OnSave(ConfigNode node)
+       public void Save()
         {
             ConfigNode file = new ConfigNode();
             ConfigNode node1 = new ConfigNode();
@@ -269,14 +270,14 @@ namespace Proximity
             node1.AddValue("volume", (int)(volume * 100));
 
 
-            file.Save(StockToolbar.dataPath + "/config.cfg");
+            file.Save(StockToolbar.dataPath + "config.cfg");
         }
 
         public override void OnLoad(ConfigNode node)
         {
-            if (System.IO.File.Exists(StockToolbar.dataPath + "/config.cfg"))
+            if (System.IO.File.Exists(StockToolbar.dataPath + "config.cfg"))
             {
-                ConfigNode file = ConfigNode.Load(StockToolbar.dataPath + "/config.cfg");
+                ConfigNode file = ConfigNode.Load(StockToolbar.dataPath + "config.cfg");
                 if (file != null)
                 {
                     ConfigNode node1 = file.GetNode("Proximity");
@@ -404,10 +405,12 @@ namespace Proximity
                             }
 
                             GUILayoutOption[] opts = { GUILayout.Width(fixedwidth), GUILayout.ExpandHeight(true) };
+                            Rect oldRect = new Rect(windowPos);
                             windowPos = ClickThruBlocker.GUILayoutWindow(this.ClassID, windowPos, OnWindow, ConditionalShow ? "Proximity" : "Proximity settings", opts);
                             //windowPos = GUILayout.Window(123124, windowPos, OnWindow, ConditionalShow ? "Proximity" : "Proximity settings", GUILayout.Width(fixedwidth));
                             windowPos.width = fixedwidth;
-
+                            if (oldRect != windowPos)
+                                Save();
                             if (windowPos.x == 0 && windowPos.y == 0)
                             {
                                 windowPos = windowPos.CentreScreen();
@@ -703,9 +706,10 @@ namespace Proximity
 
         private void ShowSettings()
         {
+            bool changed = false;
             try
             {
-                if (/* UseToolbar && */ toolbarShowSettings)
+                if (toolbarShowSettings)
                 {
                     // Activation height
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
@@ -715,6 +719,7 @@ namespace Proximity
                     {
                         ActivationHeight -= 500;
                         if (ActivationHeight < 500) ActivationHeight = 500;
+                        changed = true;
                     }
 
                     GUILayout.Label(ActivationHeight.ToString() + " m", styleValue);
@@ -723,6 +728,7 @@ namespace Proximity
                     {
                         ActivationHeight += 500;
                         if (ActivationHeight > 10000) ActivationHeight = 10000;
+                        changed = true;
                     }
 
                     GUILayout.EndHorizontal();
@@ -748,13 +754,15 @@ namespace Proximity
                     // Visual threshold subtype
                     if (visualIndex == 2)
                     {
-                        ThresholdHeight(styleValue);
+                        if (ThresholdHeight(styleValue))
+                            changed = true;
                     }
 
                     // Sound type
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
                     if (GUILayout.Button("Sound: " + beepType[beepIndex], styleButton, GUILayout.ExpandWidth(true)))
                     {
+                        changed = true;
                         beepIndex++;
                         if (beepIndex == beepType.Length)
                         {
@@ -767,6 +775,7 @@ namespace Proximity
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
                     if (GUILayout.Button("Pitch: " + pitchType[pitchIndex], styleButton, GUILayout.ExpandWidth(true)))
                     {
+                        changed = true;
                         pitchIndex++;
                         if (pitchIndex == pitchType.Length)
                         {
@@ -784,16 +793,21 @@ namespace Proximity
 
                     if (volume != oldvol)
                     {
+                        changed = true;
                         audioSource.volume = volume;
                     }
 
                     // parachutes
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
+                    bool old = deactivateOnParachute;
                     deactivateOnParachute = GUILayout.Toggle(deactivateOnParachute, " Off if parachuting", styleToggle, null);
+                    changed = changed || (old != deactivateOnParachute);
                     GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
+                    old = deactivateIfRover;
                     deactivateIfRover = GUILayout.Toggle(deactivateIfRover, " Off if vessel is rover", styleToggle, null);
+                    changed = changed || (old != deactivateOnParachute);                    
                     GUILayout.EndHorizontal();
 
                     styleButton.normal.textColor = styleButton.focused.textColor = styleButton.hover.textColor = styleButton.active.textColor = SystemOn ? Color.red : Color.green;
@@ -805,9 +819,12 @@ namespace Proximity
                     GUILayout.Label(SystemOn ? "ON " : "OFF ", styleValue);
                     if (GUILayout.Button(SystemOn ? "Switch off" : "Switch on", styleButton, GUILayout.ExpandWidth(true)))
                     {
+                        changed = true;
                         ToggleSystemOn();
                     }
                     GUILayout.EndHorizontal();
+                    if (changed)
+                        Save();
                 }
             }
             catch (Exception ex)
@@ -830,12 +847,14 @@ namespace Proximity
             }
         }
 
-        private void ThresholdHeight(GUIStyle style)
+        private bool ThresholdHeight(GUIStyle style)
         {
+            bool b = false;
             GUILayout.BeginHorizontal(GUILayout.Width(fixedwidth - margin));
             GUILayout.Label("Threshold: ");
             if (GUILayout.Button("-", styleButton, GUILayout.ExpandWidth(true)))
             {
+                b = true;
                 DSThreshold -= 50;
                 if (DSThreshold < 50)
                 {
@@ -847,6 +866,7 @@ namespace Proximity
 
             if (GUILayout.Button("+", styleButton, GUILayout.ExpandWidth(true)))
             {
+                b = true;
                 DSThreshold += 50;
                 if (DSThreshold > 2000)
                 {
@@ -854,6 +874,7 @@ namespace Proximity
                 }
             }
             GUILayout.EndHorizontal();
+            return b;
         }
 
         private AudioClip MakeBeep()

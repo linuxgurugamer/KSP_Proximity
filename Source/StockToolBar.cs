@@ -33,7 +33,7 @@ namespace Proximity
             DontDestroyOnLoad(this);
         }
 
-        internal const string dataPath = "GameData/KSP_Proximity/PluginData";
+        internal const string dataPath = "GameData/KSP_Proximity/PluginData/";
         internal const string buttonDirPath = "KSP_Proximity/PluginData/ToolbarIcons/";
 
         string ButtonPath(string buttonName)
