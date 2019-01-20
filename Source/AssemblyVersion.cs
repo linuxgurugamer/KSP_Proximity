@@ -10,9 +10,9 @@
   
  using System.Reflection;
 
- [assembly: AssemblyVersion("0.3.0.0")]
+ [assembly: AssemblyVersion("0.3.1.0")]
   public partial class FMRS_Version_Info
   {
    public const string beta_version = "0";
-   public const string version_number = "0.3.0.0";
+   public const string version_number = "0.3.1.0";
   }

@@ -1,3 +1,6 @@
+0.3.1
+	Added missing bulkheadProfiles
+
 0.3.0
 	Adopted by LinuxGuruGamer
 	Updated for 1.5+
