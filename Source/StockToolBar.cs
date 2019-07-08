@@ -34,7 +34,7 @@ namespace Proximity
         }
 
         internal const string dataPath = "GameData/KSP_Proximity/PluginData/";
-        internal const string buttonDirPath = "KSP_Proximity/";
+        internal const string buttonDirPath = "KSP_Proximity/ToolbarIcons/";
 
         string ButtonPath(string buttonName)
         {
