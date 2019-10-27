@@ -570,7 +570,7 @@ namespace Proximity
         private void DoProximityContent()
         {
             CheckLanded();
-            if (Event.current.type == EventType.repaint && ConditionalShow)
+            if (Event.current.type == EventType.Repaint && ConditionalShow)
             {
                 CheckChutes();
 
